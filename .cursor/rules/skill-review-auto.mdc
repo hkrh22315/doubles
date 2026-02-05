@@ -1,0 +1,13 @@
+---
+description: `.cursor/skills/**` と `.cursor/rules/**` と `.cursorrules` に変更がある作業では、完了前に必ず `skill-review` の観点でレビュー結果（Critical/Suggestion/Nice to have）をテンプレ形式で出力する。
+globs:
+  - .cursor/skills/**
+  - .cursor/rules/**
+  - .cursorrules
+alwaysApply: false
+---
+
+1. `.cursor/skills/**` または `.cursor/rules/**` または `.cursorrules` に変更が含まれるタスクでは、完了扱いにする前に必ず `.cursor/skills/skill-review/` を適用してレビューを実施すること。
+2. レビューは `.cursor/skills/skill-review/references/checklist.md` の観点に沿って確認し、出力は `.cursor/skills/skill-review/references/output-template.md` のテンプレ形式（Summary / Findings: Critical・Suggestion・Nice to have / Risks / Recommended changes / Quick checklist）で必ず提示すること。
+3. Findings に **Critical** がある場合は、完了扱いにする前に「修正」または「具体的な修正案（どのファイルのどこをどう変えるか）」を必ず提示すること。
+4. レビュー時は差分（変更ファイル）を最優先で確認し、必要なファイルのみを追加で読むこと（闇雲に全ファイルを読まない）。
