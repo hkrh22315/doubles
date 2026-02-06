@@ -1,3 +1,4 @@
+import json
 import logging
 import os
 import re
@@ -16,6 +17,36 @@ LOGGER = logging.getLogger("discord-memo-bot")
 
 
 DATE_LINE_RE = re.compile(r"^\d{1,2}/\d{1,2}\s*$")
+
+
+def _format_http_error_detail(e: HttpError) -> str:
+    """
+    Google API の HttpError からユーザー向けの詳細メッセージを抽出する。
+    秘密情報を含まないよう、error.message と errors[].reason のみを使用する。
+    """
+    detail = ""
+    if getattr(e, "content", None):
+        try:
+            body = json.loads(e.content.decode("utf-8"))
+            err = body.get("error", {})
+            if isinstance(err, dict):
+                msg = err.get("message", "")
+                if msg:
+                    detail = msg
+                errors = err.get("errors", [])
+                if isinstance(errors, list) and errors:
+                    reasons = [
+                        x.get("reason", "")
+                        for x in errors
+                        if isinstance(x, dict) and x.get("reason")
+                    ]
+                    if reasons and not detail:
+                        detail = "; ".join(reasons)
+                    elif reasons:
+                        detail = f"{detail} ({'; '.join(reasons)})"
+        except (ValueError, TypeError, UnicodeDecodeError):
+            pass
+    return detail
 
 
 def get_latest_memo(raw_text: str) -> Optional[str]:
@@ -182,11 +213,14 @@ def main() -> None:
         except HttpError as e:
             LOGGER.exception("Google Docs API エラー")
             status = e.resp.status if e.resp else "?"
-            await interaction.followup.send(
+            msg = (
                 f"Google ドキュメントの更新に失敗しました (HTTP {status})。"
-                "ドキュメントがサービスアカウントと共有されているか確認してください。",
-                ephemeral=True,
+                "ドキュメントがサービスアカウントと共有されているか確認してください。"
             )
+            detail = _format_http_error_detail(e)
+            if detail:
+                msg = f"{msg}\n詳細: {detail}"
+            await interaction.followup.send(msg, ephemeral=True)
             return
         except OSError as e:
             LOGGER.exception("Google 認証ファイルの読み込みエラー")

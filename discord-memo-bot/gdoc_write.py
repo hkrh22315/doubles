@@ -33,17 +33,19 @@ def _get_docs_service():
     return build("docs", "v1", credentials=credentials)
 
 
-def _document_end_index(service, doc_id: str) -> int:
+def _document_append_index(service, doc_id: str) -> int:
     """
-    ドキュメントの末尾のインデックス（挿入位置）を取得する。
-    body.content の最後の要素の endIndex を使用する。
+    ドキュメントの末尾へ追記するときの挿入位置（index）を取得する。
+    Docs API では末尾挿入に endIndex をそのまま使うと無効で HTTP 400 になるため、
+    max(1, endIndex - 1) を使う。空ドキュメントの場合は 1 を返す。
     """
     doc = service.documents().get(documentId=doc_id).execute()
     body = doc.get("body", {})
     content = body.get("content", [])
     if not content:
         return 1
-    return content[-1].get("endIndex", 1)
+    end_index = content[-1].get("endIndex", 1)
+    return max(1, end_index - 1)
 
 
 def append_text(doc_id: str, body_text: str, date_line: Optional[str] = None) -> None:
@@ -70,13 +72,13 @@ def append_text(doc_id: str, body_text: str, date_line: Optional[str] = None) ->
     text_to_insert = f"{date_line}\n\n{body_text.rstrip()}\n"
 
     service = _get_docs_service()
-    end_index = _document_end_index(service, doc_id)
+    insert_index = _document_append_index(service, doc_id)
 
-    # 末尾に追記するため、body の最後の endIndex を挿入位置に使う
+    # 末尾に追記するため、挿入可能な末尾 index（endIndex - 1）を使用
     requests = [
         {
             "insertText": {
-                "location": {"index": end_index},
+                "location": {"index": insert_index},
                 "text": text_to_insert,
             }
         }

@@ -9,3 +9,5 @@ credentials.json
 **/service-account*.json
 # Google Cloud デフォルトのキー名（プロジェクトID-ランダム.json）
 hip-caster-*-*.json
+# その他 GCP サービスアカウント鍵（*.json で iam.gserviceaccount.com を含む名前を想定）
+*iam.gserviceaccount.com*.json

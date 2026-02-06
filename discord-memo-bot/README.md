@@ -201,6 +201,11 @@ sudo systemctl status discord-memo-bot
 - `/memo` を実行しても何も返らない場合:
   - Google ドキュメントの共有設定が「リンクを知っている全員が閲覧可」になっているか確認。
   - ドキュメント内に `M/D` or `MM/DD` 形式の日付行が 1 行だけで書かれているか確認。
+- `/send_memo` で HTTP 400 等のエラーが出る場合:
+  - ドキュメントがサービスアカウントのメール（`xxx@xxx.iam.gserviceaccount.com`）と**編集者**で共有されているか確認。
+  - エラーメッセージに「詳細:」が含まれる場合は、その内容で Google 側の理由を確認できる。
+- サービスアカウントの JSON キーをリポジトリにコミットしてしまった場合:
+  - Google Cloud Console → IAM と管理 → サービスアカウント → 該当アカウント → 「キー」で、漏洩したキーを**削除**し、新しいキーを発行して `GOOGLE_APPLICATION_CREDENTIALS` を差し替える。
 - systemd で起動しない場合:
   - `sudo journalctl -u discord-memo-bot -e` でログを確認。
   - `Environment` のトークンや DOC_ID が正しいか確認。
