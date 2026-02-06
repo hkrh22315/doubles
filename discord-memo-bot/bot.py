@@ -11,11 +11,6 @@ from googleapiclient.errors import HttpError
 
 from gdoc_write import append_text as gdoc_append_text
 
-from google.auth.exceptions import DefaultCredentialsError
-from googleapiclient.errors import HttpError
-
-from gdoc_write import append_text as gdoc_append_text
-
 
 LOGGER = logging.getLogger("discord-memo-bot")
 
@@ -113,49 +108,6 @@ def main() -> None:
         )
 
     bot = MemoBot()
-
-    @bot.tree.command(
-        name="send_memo",
-        description="メモを Google ドキュメントの末尾に送信します。",
-    )
-    @app_commands.describe(content="メモ本文")
-    async def send_memo(
-        interaction: discord.Interaction, content: str
-    ) -> None:  # type: ignore[override]
-        if not os.getenv("GOOGLE_APPLICATION_CREDENTIALS"):
-            await interaction.response.send_message(
-                "Google ドキュメントへの書き込みは設定されていません。",
-                ephemeral=True,
-            )
-            return
-        await interaction.response.defer(ephemeral=True)
-        try:
-            gdoc_append_text(doc_id, content)
-        except DefaultCredentialsError:
-            await interaction.followup.send(
-                "Google ドキュメントへの書き込みは設定されていません。",
-                ephemeral=True,
-            )
-            return
-        except HttpError as e:
-            LOGGER.exception("Failed to append to document: HTTP error")
-            status = getattr(getattr(e, "resp", None), "status", None) or ""
-            await interaction.followup.send(
-                f"Google ドキュメントへの送信に失敗しました (HTTP error: {status}).",
-                ephemeral=True,
-            )
-            return
-        except Exception as e:
-            LOGGER.exception("Failed to append to document")
-            await interaction.followup.send(
-                f"Google ドキュメントへの送信中にエラーが発生しました: {e}",
-                ephemeral=True,
-            )
-            return
-        await interaction.followup.send(
-            "Google ドキュメントに送信しました。",
-            ephemeral=True,
-        )
 
     @bot.tree.command(name="memo", description="Googleドキュメントの最新メモを送信します。")
     async def memo(interaction: discord.Interaction) -> None:  # type: ignore[override]
