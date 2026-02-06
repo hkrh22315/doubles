@@ -1,0 +1,11 @@
+.cursor/
+
+# Google サービスアカウント JSON キー（秘密情報・コミットしない）
+service-account.json
+credentials.json
+
+# サービスアカウント等の秘密情報（リポジトリにコミットしない）
+*-credentials.json
+**/service-account*.json
+# Google Cloud デフォルトのキー名（プロジェクトID-ランダム.json）
+hip-caster-*-*.json
